@@ -1,20 +1,36 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-// Pins 2 and 3 are needed for int0 e int1 to wake up the system.
-#define BTN_1 2
-#define BTN_2 3
-
 enum Difficulty { EASY, MEDIUM, HARD, IMPOSSIBLE };
 
+/**
+ * Get button state for each player
+*/
 int getButtonState(int player);
 
+/**
+ * Current game difficulty mapped from potentiometer
+*/
 Difficulty getDifficulty();
 
+/**
+ * Defines pin modes
+*/
+void setupInput();
+
+/**
+ * Places the system into sleep mode
+*/
 void gameSleep();
 
+/**
+ * System wake up handler
+*/
 void gameWake();
 
+/**
+ * Updates input variables also caring about debounce
+*/
 void inputUpdate();
 
 #endif

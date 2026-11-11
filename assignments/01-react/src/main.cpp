@@ -1,19 +1,16 @@
 #include <Arduino.h>
-
-// put function declarations here:
-int myFunction(int, int);
+#include "../include/gameEngine.h"
+#include "../include/leds.h"
+#include "../include/screen.h"
+#include "../include/input.h"
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
-  pinMode(13, OUTPUT);
+  setupLeds();
+  setupInput();
+  setupScreen();
+  setupGameEngine(analogRead(0));
 }
 
 void loop() {
-  
-}
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
 }

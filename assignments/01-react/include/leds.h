@@ -1,12 +1,7 @@
 #ifndef LEDS_H
 #define LEDS_H
 
-#define PIN_L1 4 
-#define PIN_L2 5 
-#define PIN_L3 6 
-#define PIN_L4 7 
-
-void ledsInit();
+void setupLeds();
 
 void ledsSetFading(bool active);
 
