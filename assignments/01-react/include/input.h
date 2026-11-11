@@ -6,7 +6,7 @@ enum Difficulty { EASY, MEDIUM, HARD, IMPOSSIBLE };
 /**
  * Get button state for each player
 */
-int getButtonState(int player);
+bool getButtonState(int player);
 
 /**
  * Current game difficulty mapped from potentiometer
