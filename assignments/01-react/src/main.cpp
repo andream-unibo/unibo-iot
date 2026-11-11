@@ -8,7 +8,6 @@
 GAME_STATES previousState = (GAME_STATES) -1;
 
 void welcomeSetup();
-void welcome();
 
 void setup()
 {
@@ -18,31 +17,22 @@ void setup()
 	setupGameEngine(analogRead(A5));
 	reset();
 }
-
+	
 void loop()
 {
-
 	GAME_STATES currentState = getCurrentState();
 
 	// Game state setup, executed only when state changes
 	if (currentState != previousState) {
 		switch (currentState) {
-			case GAME_STATES::INIT: 
+			case GAME_STATES::INITIALIZING: 
 				welcomeSetup(); 
 				break;
 		}
 		previousState = currentState;
 	}
 
-	// Game state loop, executed every tick
-	switch (currentState)
-	{
-		case GAME_STATES::INIT:
-			welcome();
-			break;
-	}
-
-	// Update leds, input and screen every tick
+	gameEngineUpdate();
 	ledsUpdate();
 	inputUpdate();
 	screenUpdate();
@@ -53,11 +43,4 @@ void welcomeSetup() {
 	screenSetScrolling(true);
 	ledsSetFading(true);
 }
-
-void welcome() {
-	if (getButtonState(1) && getButtonState(2)) {
-		startRound(1);
-	}
-}
-
 
