@@ -13,8 +13,8 @@ int getDifficulty()
 
 void setupInput()
 {
-    pinMode(BUTTON_LEFT, INPUT);
-    pinMode(BUTTON_RIGHT, INPUT);
+    pinMode(BUTTON_LEFT, INPUT_PULLUP);
+    pinMode(BUTTON_RIGHT, INPUT_PULLUP);
     pinMode(PIN_POTENTIOMETER, INPUT);
 }
 
@@ -29,13 +29,13 @@ struct ButtonData
 };
 
 ButtonData buttons[2] = {
-  {BUTTON_LEFT, 0, LOW, LOW, false},
-  {BUTTON_RIGHT, 0, LOW, LOW, false}
+  {BUTTON_LEFT, 0, HIGH, HIGH, false},
+  {BUTTON_RIGHT, 0, HIGH, HIGH, false}
 };
 
 void checkButton(int player) 
 {
-  bool currentRawState { digitalRead(buttons[player].buttonPin) }; 
+  bool currentRawState { !digitalRead(buttons[player].buttonPin) }; 
 
   if (currentRawState != buttons[player].lastRawState)
   {
@@ -75,13 +75,11 @@ bool getButtonState(int player)
 void gameSleep()
 {
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    sleep_enable();
 
-    attachInterrupt(digitalPinToInterrupt(BUTTON_LEFT), gameWake, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT), gameWake, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(BUTTON_LEFT), gameWake, LOW);
+    attachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT), gameWake, LOW);
 
     sleep_mode();
-    sleep_disable();
 
     detachInterrupt(digitalPinToInterrupt(BUTTON_LEFT));
     detachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT));

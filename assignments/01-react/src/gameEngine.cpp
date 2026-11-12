@@ -208,10 +208,8 @@ void gameEngineUpdate() {
         case GAME_STATES::WAITING_PLAYER_REACTION:
             listeningPlayerHits(PLAYER_1, player1Button);
             listeningPlayerHits(PLAYER_2, player2Button);
-
             checkPlayerWin(PLAYER_1);
             checkPlayerWin(PLAYER_2);
-            
             changeStateAfterStateTime(GAME_STATES::GAME_OVER_RED_LEDS);
             break;
         case GAME_STATES::ROUND_OVER:
