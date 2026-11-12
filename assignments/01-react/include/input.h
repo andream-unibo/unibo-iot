@@ -2,34 +2,42 @@
 #define INPUT_H
 
 /**
- * Get button state for each player
-*/
-bool getButtonState(int player);
-
-/**
- * Current game difficulty mapped from potentiometer
-*/
+ * Return the difficulty level for the next game.
+ * It will use PWM to map the Potentiometer into the difficulty levels.
+ */
 int getDifficulty();
 
 /**
- * Defines pin modes
-*/
+ * Setup pinModes of Buttons and Potentiometer.
+ */
 void setupInput();
 
 /**
- * Places the system into sleep mode
-*/
+ * Verifies the current state of a Button for the specified player with debouncing.
+ * It saves the clean state of the specific Button.
+ */
+void checkButton(int player);
+
+/**
+ * Update Buttons and Potentiometer current state.
+ */
+void inputUpdate();
+
+/**
+ * Get the clean state of a Button for the specified player.
+ * Return true if the Button is pressed, false otherwise.
+ */
+bool getButtonState(int player);
+
+/**
+ * Set the system into Deep Sleep after 10 seconds, if no Button is pressed.
+ */
 void gameSleep();
 
 /**
- * System wake up handler
-*/
+ * Awake the system from Deep Sleep when each of the 2 Buttons is pressed.
+ */
 void gameWake();
-
-/**
- * Updates input variables also caring about debounce
-*/
-void inputUpdate();
 
 #endif
 
