@@ -1,52 +1,104 @@
+#include <Arduino.h>
 #include "input.h"
+#include "pins.h"
+#include "avr/sleep.h"
 
-/**
- * Get the state of a button for the specified player.
- * Return true if the button is pressed, false otherwise.
- */
-bool getButtonState(int player)
+#define DEBOUNCE_TIME 50
+#define DEEP_SLEEP_TIME 10000
+
+int getDifficulty()
 {
-
+    return map(analogRead(PIN_POTENTIOMETER), 0, 1023, 1, 4);
 }
 
-/**
- * Return the difficulty level for the next game.
- */
-Difficulty getDifficulty()
-{
-
-}
-
-/**
- * Setup pinModes of buttons and potentiometer
- */
 void setupInput()
 {
-
+    pinMode(BUTTON_LEFT, INPUT);
+    pinMode(BUTTON_RIGHT, INPUT);
+    pinMode(PIN_POTENTIOMETER, INPUT);
 }
 
-/**
- * Set the system into deep sleep 
- */
+
+struct ButtonData
+{
+    int buttonPin;
+    unsigned long lastPressed;
+    bool lastRawState;
+    bool lastCleanState;
+    bool cleanInput;
+};
+
+ButtonData buttons[2] = {
+  {BUTTON_LEFT, 0, LOW, LOW, false},
+  {BUTTON_RIGHT, 0, LOW, LOW, false}
+};
+
+void checkButton(int player) 
+{
+  bool currentRawState { digitalRead(buttons[player].buttonPin) }; 
+
+  if (currentRawState != buttons[player].lastRawState)
+  {
+    buttons[player].lastPressed = millis();
+  }
+
+  if ((millis() - buttons[player].lastPressed) > DEBOUNCE_TIME)
+  {
+    if (currentRawState != buttons[player].lastCleanState)
+    {
+      buttons[player].lastCleanState = currentRawState;
+      
+      if (buttons[player].lastCleanState == HIGH) 
+      {
+        buttons[player].cleanInput = true;
+      }
+    }
+  }
+  
+  buttons[player].lastRawState = currentRawState; 
+}
+
+bool checkLastPressed(int player)
+{
+    return buttons[player].lastPressed > DEEP_SLEEP_TIME; 
+}
+
+void inputUpdate()
+{
+    checkButton(0);
+    checkButton(1);
+    getDifficulty();
+
+    if (checkLastPressed(0) && checkLastPressed(1))
+    {
+        gameSleep();
+    }
+}
+
+bool getButtonState(int player)
+{
+    bool clicked { buttons[player].cleanInput };
+    buttons[player].cleanInput = false;
+    return clicked;
+}
+
 void gameSleep()
 {
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    sleep_enable();
 
+    attachInterrupt(digitalPinToInterrupt(BUTTON_LEFT), gameWake, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT), gameWake, CHANGE);
+
+    sleep_mode();
+    sleep_disable();
+
+    detachInterrupt(digitalPinToInterrupt(BUTTON_LEFT));
+    detachInterrupt(digitalPinToInterrupt(BUTTON_RIGHT));
 }
 
-/**
- * Awake the system from deep sleep 
- */
 void gameWake()
 {
 
 }
-
-/**
- * Update buttons and potentiometer to the current input
- */
-void inputUpdate()
-{
-    
-}
-
 
