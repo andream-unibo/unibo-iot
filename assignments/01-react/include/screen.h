@@ -9,7 +9,7 @@ void screenShowTarget(int target);
 
 void screenShowPlayerScores(int score1, int score2);
 
-void screenSetText(const char* text);
+void screenSetText(String text);
 
 void screenSetScrolling(bool isScrolling);
 

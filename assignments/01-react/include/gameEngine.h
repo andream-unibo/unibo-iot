@@ -3,53 +3,24 @@
 
 enum GAME_STATES
 {
-    INITIALIZING,
+    WELCOME,
+    GAME_START,
     WAITING_ROUND,
     WAITING_PLAYER_REACTION,
-    ROUND_OVER
+    ROUND_OVER,
+    GAME_OVER
 };
 
-/**
- * Set up the game engine with a seed for random generation.
-*/
 void setupGameEngine(unsigned long seed);
-
-/**
- * Adds a point to a Player.
- * 
- * Param: 1 or 2.
-*/
-void incrementPointsFor(int player);
-
-/**
- * Remove a point from a Player.
- * 
- * Param: 1 or 2.
-*/
-void decrementPointsFor(int player);
-
-void setPointsOf(int player, int points);
-
-int getPointsOf(int player);
-
-/**
- * Returns current game state.
-*/
-GAME_STATES getCurrentState();
-
-/**
- * Resets the game (player points) and goes back to initial welcome stage.
-*/
-void reset();
-
-/**
- * Switches game state to Round state.
-*/
-void startRoundWaiting();
-
-/**
- * Executed every game tick.
-*/
+void playerLoss(int player);
+void playerWin(int player);
+void checkPlayerEarlyTap(int player, bool button);
+void listeningPlayerHits(int player, bool button);
+void checkPlayerWin(int player);
+void playerNewRound(int player);
+void newRound();
+void changeState(GAME_STATES newState);
 void gameEngineUpdate();
+
 
 #endif

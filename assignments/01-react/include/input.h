@@ -1,8 +1,6 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-enum Difficulty { EASY, MEDIUM, HARD, IMPOSSIBLE };
-
 /**
  * Get button state for each player
 */
@@ -11,7 +9,7 @@ bool getButtonState(int player);
 /**
  * Current game difficulty mapped from potentiometer
 */
-Difficulty getDifficulty();
+int getDifficulty();
 
 /**
  * Defines pin modes

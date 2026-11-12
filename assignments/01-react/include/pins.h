@@ -1,8 +1,6 @@
 #ifndef PINS_H
 #define PINS_H
 
-#include <Arduino.h>
-
 #define GREEN_LED_LEFT 4 
 #define RED_LED_RIGHT 6 // PWM for pulsing phase
 #define GREEN_LED_RIGHT 7 
