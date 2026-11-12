@@ -19,11 +19,6 @@ void setupInput();
 void checkButton(int player);
 
 /**
- * Verifies if the last press was before or after DEEP_SLEEP_TIME.
- */
-bool checkLastPressed(int player);
-
-/**
  * Update Buttons and Potentiometer current state.
  */
 void inputUpdate();

@@ -58,21 +58,11 @@ void checkButton(int player)
   buttons[player].lastRawState = currentRawState; 
 }
 
-bool checkLastPressed(int player)
-{
-    return buttons[player].lastPressed > DEEP_SLEEP_TIME; 
-}
-
 void inputUpdate()
 {
     checkButton(0);
     checkButton(1);
     getDifficulty();
-
-    if (checkLastPressed(0) && checkLastPressed(1))
-    {
-        gameSleep();
-    }
 }
 
 bool getButtonState(int player)
