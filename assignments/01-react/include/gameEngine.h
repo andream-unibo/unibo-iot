@@ -8,6 +8,7 @@ enum GAME_STATES
     WAITING_ROUND,
     WAITING_PLAYER_REACTION,
     ROUND_OVER,
+    GAME_OVER_RED_LEDS,
     GAME_OVER
 };
 
@@ -17,7 +18,7 @@ void playerWin(int player);
 void checkPlayerEarlyTap(int player, bool button);
 void listeningPlayerHits(int player, bool button);
 void checkPlayerWin(int player);
-void playerNewRound(int player);
+void playerResetRound(int player);
 void newRound();
 void changeState(GAME_STATES newState);
 void gameEngineUpdate();

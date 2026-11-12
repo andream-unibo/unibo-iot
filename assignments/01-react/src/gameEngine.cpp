@@ -7,21 +7,26 @@
 #define PLAYER_1 0
 #define PLAYER_2 1
 
-#define MAX_WAIT 7500 + 1
+
 
 #define LOSE_VALUE -1
 
-#define RANDOM_MIN 1
-#define RANDOM_MAX 3 + 1
+#define TARGET_MIN 1
+#define TARGET_MAX 3 + 1
 
 #define WIN_CHECK_WAIT 250
 
 #define WIN_TIMER 2000
-#define GAMEOVER_TIMER 10000
+#define GAME_OVER_TIMER 10000
 #define START_TRANSITION_TIME 300
-
+#define GAME_OVER_RED_LED_TIME 2000
 #define INITIAL_T1 10000
-#define DIFFICULTY_FACTOR 2
+#define MIN_TIME 2000
+
+// Requested parameters
+#define SLEEP_TIME 10000
+#define DIFFICULTY_FACTOR 150 // ms 
+#define MAX_WAIT 7500 + 1
 
 struct Player {
     int points;
@@ -35,9 +40,10 @@ Player players[2];
 unsigned long stateTimer;
 unsigned long stateTimerStart;
 
-unsigned long playerTimeOut;
+unsigned long playerTimeOut = INITIAL_T1;
 
-int roundObjective = 0;
+int roundTarget = 0;
+int difficulty = 1;
 
 GAME_STATES currentState;
 
@@ -68,10 +74,10 @@ void listeningPlayerHits(int player, bool button) {
     if (button) {
         players[player].roundClicks++;
     }
-    if (players[player].roundClicks > roundObjective) {
+    if (players[player].roundClicks > roundTarget) {
         playerLoss(player);
     }
-    else if (players[player].roundClicks == roundObjective) {
+    else if (players[player].roundClicks == roundTarget) {
         players[player].winTimeStart = millis();
     }
 }
@@ -81,24 +87,23 @@ void checkPlayerWin(int player) {
         return;
     }
     bool winTimeCheck = millis() - players[player].winTimeStart > WIN_CHECK_WAIT;
-    bool pointsCheck = players[player].roundClicks == roundObjective;
+    bool pointsCheck = players[player].roundClicks == roundTarget;
     if (winTimeCheck && pointsCheck) {
         playerWin(player);
     }
 }
 
-void playerNewRound(int player) {
+void playerResetRound(int player) {
     players[player].roundClicks = 0;
     players[player].winTimeStart = 0;
 }
 
-void newRound() {
-    playerNewRound(PLAYER_1);
-    playerNewRound(PLAYER_2);
-    stateTimer = random(0, MAX_WAIT);
-    stateTimerStart = millis();
-    roundObjective = random(RANDOM_MIN, RANDOM_MAX);
-    playerTimeOut -= playerTimeOut * (5 * DIFFICULTY_FACTOR) / 100;
+unsigned long calcPlayerTimeout() {
+    unsigned long delta = DIFFICULTY_FACTOR * difficulty;
+    if (playerTimeOut > MIN_TIME + delta) {
+        return playerTimeOut - delta;
+    }
+    return MIN_TIME;
 }
 
 void changeState(GAME_STATES newState) {
@@ -111,9 +116,7 @@ void changeState(GAME_STATES newState) {
             turnRedOn(PLAYER_2);
             turnGreenOff(PLAYER_1);
             turnGreenOff(PLAYER_2);
-            playerTimeOut = INITIAL_T1;
-            players[PLAYER_1].points = 0;
-            players[PLAYER_2].points = 0;
+            stateTimer = SLEEP_TIME;
             break;
         case GAME_STATES::GAME_START:
             screenSetText("Go!");
@@ -121,6 +124,11 @@ void changeState(GAME_STATES newState) {
             ledsSetFading(false);
             turnRedOff(PLAYER_1);
             turnRedOff(PLAYER_2);
+            stateTimer = START_TRANSITION_TIME;
+            players[PLAYER_1].points = 0;
+            players[PLAYER_2].points = 0;
+            difficulty = getDifficulty();
+            playerTimeOut = INITIAL_T1;
             break;
         case GAME_STATES::WAITING_ROUND:
             screenSetText("");
@@ -128,15 +136,24 @@ void changeState(GAME_STATES newState) {
             turnGreenOff(PLAYER_2);
             turnRedOff(PLAYER_1);
             turnRedOff(PLAYER_2);
-            newRound();
+            playerResetRound(PLAYER_1);
+            playerResetRound(PLAYER_2);
+            stateTimer = random(0, MAX_WAIT);
+            stateTimerStart = millis();
+            roundTarget = random(TARGET_MIN, TARGET_MAX);
+            playerTimeOut = calcPlayerTimeout();
             break;
         case GAME_STATES::WAITING_PLAYER_REACTION:
-            screenShowTarget(roundObjective);
+            screenShowTarget(roundTarget);
+            stateTimer = playerTimeOut;
             break;
         case GAME_STATES::ROUND_OVER:
             screenShowPlayerScores(players[PLAYER_1].points, players[PLAYER_2].points);
+            stateTimer = WIN_TIMER;
             break;
-        case GAME_STATES::GAME_OVER:
+        case GAME_STATES::GAME_OVER_RED_LEDS:
+            turnRedOn(PLAYER_1);
+            turnRedOn(PLAYER_2);
             if (players[PLAYER_1].points > players[PLAYER_2].points) {
                 screenSetText("Game Over - The winner is Player 1");
             } else if (players[PLAYER_1].points < players[PLAYER_2].points) {
@@ -145,12 +162,24 @@ void changeState(GAME_STATES newState) {
                 screenSetText("Game Over - Tie");
             }
             screenSetScrolling(true);
+            stateTimer = GAME_OVER_RED_LED_TIME;
+            break;
+        case GAME_STATES::GAME_OVER:
+            turnRedOff(PLAYER_1);
+            turnRedOff(PLAYER_2);
+            stateTimer = GAME_OVER_TIMER - GAME_OVER_RED_LED_TIME;
             break;
         default:
             break;
     }
     currentState = newState;
     stateTimerStart = millis();
+}
+
+void changeStateAfterStateTime(GAME_STATES state) {
+    if (millis() - stateTimerStart > stateTimer) {
+        changeState(state);
+    }
 }
 
 void gameEngineUpdate() {
@@ -161,21 +190,20 @@ void gameEngineUpdate() {
         case GAME_STATES::WELCOME:
             if (player1Button && player2Button) {
                 changeState(GAME_STATES::GAME_START);
+            } else if (player1Button || player2Button) {
+                stateTimerStart = millis();
+            } else if (millis() - stateTimerStart > SLEEP_TIME) {
+                gameSleep();
+                changeState(GAME_STATES::WELCOME);
             }
             break;
         case GAME_STATES::GAME_START:
-            if (millis() - stateTimerStart > START_TRANSITION_TIME) {
-                changeState(GAME_STATES::WAITING_ROUND);
-            }
+            changeStateAfterStateTime(GAME_STATES::WAITING_ROUND);
             break;
         case GAME_STATES::WAITING_ROUND:
             checkPlayerEarlyTap(PLAYER_1, player1Button);
             checkPlayerEarlyTap(PLAYER_2, player2Button);
-            
-            if (millis() - stateTimerStart > stateTimer) {
-                stateTimerStart = millis();
-                changeState(GAME_STATES::WAITING_PLAYER_REACTION);
-            }
+            changeStateAfterStateTime(GAME_STATES::WAITING_PLAYER_REACTION);
             break;
         case GAME_STATES::WAITING_PLAYER_REACTION:
             listeningPlayerHits(PLAYER_1, player1Button);
@@ -184,19 +212,17 @@ void gameEngineUpdate() {
             checkPlayerWin(PLAYER_1);
             checkPlayerWin(PLAYER_2);
             
-            if (millis() - stateTimerStart > playerTimeOut) {
-                changeState(GAME_STATES::GAME_OVER);
-            }
+            changeStateAfterStateTime(GAME_STATES::GAME_OVER_RED_LEDS);
             break;
         case GAME_STATES::ROUND_OVER:
-            if (millis() - stateTimerStart > WIN_TIMER) {
-                changeState(GAME_STATES::WAITING_ROUND);
-            }
+            changeStateAfterStateTime(GAME_STATES::WAITING_ROUND);
+            break;
+        case GAME_STATES::GAME_OVER_RED_LEDS:
+            changeStateAfterStateTime(GAME_STATES::GAME_OVER);
             break;
         case GAME_STATES::GAME_OVER:
-            if (millis() - stateTimerStart > GAMEOVER_TIMER) {
-                changeState(GAME_STATES::WELCOME);
-            }
+            changeStateAfterStateTime(GAME_STATES::WELCOME);
+            break;
         default:
             break;
     }
