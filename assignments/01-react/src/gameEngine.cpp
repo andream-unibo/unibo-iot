@@ -77,7 +77,7 @@ void listeningPlayerHits(int player, bool button) {
     if (players[player].roundClicks > roundTarget) {
         playerLoss(player);
     }
-    else if (players[player].roundClicks == roundTarget) {
+    else if (players[player].roundClicks == roundTarget && players[player].winTimeStart == 0) {
         players[player].winTimeStart = millis();
     }
 }
@@ -188,7 +188,7 @@ void gameEngineUpdate() {
 
     switch (currentState) {
         case GAME_STATES::WELCOME:
-            if (player1Button && player2Button) {
+            if (player1Button || player2Button) {
                 changeState(GAME_STATES::GAME_START);
             } else if (player1Button || player2Button) {
                 stateTimerStart = millis();
