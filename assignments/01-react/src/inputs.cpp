@@ -35,19 +35,24 @@ ButtonData buttons[2] = {
 
 void checkButton(int player) 
 {
+  // It reads raw digital input
   bool currentRawState { !digitalRead(buttons[player].buttonPin) }; 
 
+  // Detection of the mechanical movement
   if (currentRawState != buttons[player].lastRawState)
   {
     buttons[player].lastPressed = millis();
   }
 
+  // Stability check of the movement
   if ((millis() - buttons[player].lastPressed) > DEBOUNCE_TIME)
   {
+    // Update of new official state
     if (currentRawState != buttons[player].lastCleanState)
     {
       buttons[player].lastCleanState = currentRawState;
       
+      // Single click check
       if (buttons[player].lastCleanState == HIGH) 
       {
         buttons[player].cleanInput = true;
@@ -55,6 +60,7 @@ void checkButton(int player)
     }
   }
   
+  // Save of the current raw digital input
   buttons[player].lastRawState = currentRawState; 
 }
 
@@ -70,6 +76,11 @@ bool getButtonState(int player)
     bool clicked { buttons[player].cleanInput };
     buttons[player].cleanInput = false;
     return clicked;
+}
+
+bool isClicked(int player)
+{
+  return buttons[player].lastCleanState;
 }
 
 void gameSleep()

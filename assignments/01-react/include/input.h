@@ -26,8 +26,14 @@ void inputUpdate();
 /**
  * Get the clean state of a Button for the specified player.
  * Return true if the Button is pressed, false otherwise.
+ * It consumes the Button click.
  */
 bool getButtonState(int player);
+
+/**
+ * Verifies if the Button is pressed, without any consume.
+ */
+bool isClicked(int player);
 
 /**
  * Set the system into Deep Sleep after 10 seconds, if no Button is pressed.
